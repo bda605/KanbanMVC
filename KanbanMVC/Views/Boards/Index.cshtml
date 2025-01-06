@@ -1,0 +1,285 @@
+﻿@model KanbanMVC.Models.Board
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .board-container {
+        display: flex;
+        gap: 20px;
+        padding: 10px;
+        background: #e0e0e0; /* 模擬格線的背景 */
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .list-column {
+        flex: 0 0 300px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #ffffff;
+        border-radius: 5px;
+        padding: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+        .list-column h4 {
+            margin: 0;
+            padding: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            color: #333;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+    .task-list {
+        width: 100%;
+        min-height: 200px;
+        margin-top: 10px;
+        padding: 10px;
+        background-color: #f9f9f9;
+        border-radius: 5px;
+        box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .task-card {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        background-color: #fff5cc;
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        cursor: grab;
+        font-size: 14px;
+        text-align: center;
+        color: #555;
+    }
+
+        .task-card:hover {
+            background-color: #ffe680;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+    .task-options {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+    }
+
+        .task-options button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #333;
+            font-size: 16px;
+        }
+
+            .task-options button:hover {
+                color: #007bff;
+            }
+
+    .add-task-form {
+        margin-top: 10px;
+        width: 100%;
+    }
+
+        .add-task-form input {
+            width: calc(100% - 50px);
+            padding: 5px;
+            margin-right: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+
+        .add-task-form button {
+            width: 45px;
+            padding: 5px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+            .add-task-form button:hover {
+                background-color: #0056b3;
+            }
+</style>
+
+<h1>Kanban Board</h1>
+ 
+
+<!-- 新增便利貼按鈕 -->
+<button onclick="openModal()" style="margin-bottom: 20px; padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+    新增便利貼
+</button>
+
+<!-- 新增便利貼 Modal -->
+<div id="addTaskModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
+    <div style="background: white; padding: 20px; border-radius: 10px; width: 400px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);">
+        <h2>新增便利貼</h2>
+        <form id="addTaskForm">
+            <label for="taskTitle">標題：</label>
+            <input type="text" id="taskTitle" name="taskTitle" required style="width: 100%; margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;" />
+
+            <label for="listId">選擇欄位：</label>
+            <select id="listId" name="listId" required style="width: 100%; margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                @foreach (var list in Model.ItemLists)
+                {
+                    <option value="@list.Id">@list.Name</option>
+                }
+            </select>
+
+            <button type="button" onclick="submitTask()" style="background-color: #007bff; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">新增</button>
+            <button type="button" onclick="closeModal()" style="background-color: #ddd; color: #555; padding: 10px; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">取消</button>
+        </form>
+    </div>
+</div>
+
+<div class="board-container">
+    @foreach (var list in Model.ItemLists)
+    {
+        <div class="list-column" data-list-id="@list.Id">
+            <h4>@list.Name</h4>
+            <div class="task-list" data-list-id="@list.Id">
+                @foreach (var task in list.Issues)
+                {
+                    <div class="task-card" data-task-id="@task.Id">
+                        <div class="task-options">
+                            <button onclick="editTask(@task.Id)">✏️</button>
+                            <button onclick="deleteTask(@task.Id)">🗑️</button>
+                        </div>
+                        <strong>@task.Title</strong>
+                        <p>@task.Description</p>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+<script>
+    document.querySelectorAll('.task-list').forEach(list => {
+        new Sortable(list, {
+            group: 'tasks',
+            animation: 150,
+            onEnd: function (evt) {
+                const taskId = evt.item.dataset.taskId;
+                const sourceListId = evt.from.dataset.listId;
+                const targetListId = evt.to.dataset.listId;
+
+                if (sourceListId !== targetListId) {
+                    fetch('/Boards/Move', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ taskId, newListId: targetListId })
+                    }).then(response => {
+                        if (!response.ok) {
+                            alert('移動失敗，請稍後再試');
+                        }
+                    });
+                }
+            }
+        });
+    });
+
+    // 開啟 Modal
+    function openModal() {
+        document.getElementById('addTaskModal').style.display = 'flex';
+    }
+
+    // 關閉 Modal
+    function closeModal() {
+        document.getElementById('addTaskModal').style.display = 'none';
+        document.getElementById('addTaskForm').reset();
+    }
+
+    // 提交便利貼新增
+    function submitTask() {
+        const titleInput = document.getElementById('taskTitle');
+        const listSelect = document.getElementById('listId');
+        const title = titleInput.value.trim();
+        const listId = listSelect.value;
+
+        if (title === '') {
+            alert('請填寫標題！');
+            return;
+        }
+
+        fetch('/Boards/AddIssue', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ listId: listId, title: title })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const taskList = document.querySelector(`.task-list[data-list-id='${listId}']`);
+                    const newTask = document.createElement('div');
+                    newTask.classList.add('task-card');
+                    newTask.dataset.taskId = data.taskId;
+                    newTask.innerHTML = `
+                        <div class="task-options">
+                            <button onclick="editTask(${data.taskId})">✏️</button>
+                            <button onclick="deleteTask(${data.taskId})">🗑️</button>
+                        </div>
+                        <strong>${data.title}</strong><p></p>`;
+                    taskList.appendChild(newTask);
+
+                    closeModal();
+                } else {
+                    alert('新增失敗，請稍後再試');
+                }
+            });
+    }
+
+    // 編輯便利貼
+    function editTask(taskId) {
+        const newTitle = prompt('請輸入新便利貼名稱：');
+        if (newTitle) {
+            fetch('/Boards/EditIssue', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ taskId, title: newTitle })
+            }).then(response => {
+                if (response.ok) {
+                    document.querySelector(`.task-card[data-task-id='${taskId}'] strong`).textContent = newTitle;
+                } else {
+                    alert('編輯失敗，請稍後再試');
+                }
+            });
+        }
+    }
+
+    // 刪除便利貼
+    function deleteTask(taskId) {
+        if (confirm('確定要刪除這個便利貼嗎？')) {
+            fetch('/Boards/DeleteIssue', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ taskId })
+            }).then(response => {
+                if (response.ok) {
+                    const taskCard = document.querySelector(`.task-card[data-task-id='${taskId}']`);
+                    taskCard.remove();
+                } else {
+                    alert('刪除失敗，請稍後再試');
+                }
+            });
+        }
+    }
+</script>
