@@ -9,26 +9,27 @@ namespace KanbanMVC.Controllers
     {
         private readonly KanbanDbContext _context;
 
-        public BoardsController(KanbanDbContext context)
+        public  BoardsController(KanbanDbContext context)
         {
             _context = context;
+            var boards =  _context.Boards.Include(b => b.ItemLists).ThenInclude(l => l.Issues).FirstOrDefault();
+            var lists =  _context.ItemList.Include(l => l.Issues).ToList();
+            if (boards == null && !lists.Any())
+            {
+                var board = new Board { Name = "Default Board" };
+                _context.Boards.Add(board);
+                 _context.SaveChanges();
+                _context.ItemList.Add(new ItemList { Name = "待辦清單", BoardId = board.Id });
+                _context.ItemList.Add(new ItemList { Name = "進行", BoardId = board.Id });
+                _context.ItemList.Add(new ItemList { Name = "完成", BoardId = board.Id });
+                _context.SaveChanges();
+            }
         }
 
         public async Task<IActionResult> Index()
         {
             
             var boards = await _context.Boards.Include(b => b.ItemLists).ThenInclude(l => l.Issues).FirstOrDefaultAsync();
-            var lists = await _context.ItemList.Include(l => l.Issues).ToListAsync();
-            if (boards == null && !lists.Any()) 
-            {
-                var board = new Board { Name = "Default Board" };   
-               _context.Boards.Add(board);
-                await _context.SaveChangesAsync();
-                _context.ItemList.Add(new ItemList  { Name = "待辦清單", BoardId = board.Id });
-               _context.ItemList.Add(new ItemList { Name = "進行", BoardId = board.Id });
-               _context.ItemList.Add(new ItemList { Name = "完成", BoardId = board.Id });
-               await _context.SaveChangesAsync();
-            }
             return View(boards);
         }
         //public IActionResult Create()
@@ -140,7 +141,7 @@ namespace KanbanMVC.Controllers
             return Json(new { success = false });
         }
         [HttpPost]
-        public async Task<IActionResult> DeleteTask([FromBody] DeleteIssueViewModel model)
+        public async Task<IActionResult> DeleteIssue([FromBody] DeleteIssueViewModel model)
         {
             var issue = await _context.Issue.FindAsync(model.TaskId);
             if (issue == null)
@@ -180,6 +181,8 @@ namespace KanbanMVC.Controllers
         {
             public int ListId { get; set; }
             public string Title { get; set; }
+
+            public string Description { get; set; }
         }
         public class IssueMoveDto
         {

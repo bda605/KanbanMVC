@@ -28,17 +28,17 @@
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
 
-        .list-column h4 {
-            margin: 0;
-            padding: 10px;
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-            color: #333;
-            background-color: #f0f0f0;
-            border-radius: 5px;
-            width: 100%;
-        }
+    .list-column h4 {
+        margin: 0;
+        padding: 10px;
+        font-size: 18px;
+        font-weight: bold;
+        text-align: center;
+        color: #333;
+        background-color: #f0f0f0;
+        border-radius: 5px;
+        width: 100%;
+    }
 
     .task-list {
         width: 100%;
@@ -67,10 +67,10 @@
         color: #555;
     }
 
-        .task-card:hover {
-            background-color: #ffe680;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-        }
+    .task-card:hover {
+        background-color: #ffe680;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
 
     .task-options {
         position: absolute;
@@ -78,44 +78,60 @@
         right: 5px;
     }
 
-        .task-options button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #333;
-            font-size: 16px;
-        }
+    .task-options button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #333;
+        font-size: 16px;
+    }
 
-            .task-options button:hover {
-                color: #007bff;
-            }
+     .task-options button:hover {
+         color: #007bff;
+     }
 
     .add-task-form {
         margin-top: 10px;
         width: 100%;
     }
 
-        .add-task-form input {
-            width: calc(100% - 50px);
-            padding: 5px;
-            margin-right: 5px;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-        }
+    .add-task-form input {
+        width: calc(100% - 50px);
+        padding: 5px;
+        margin-right: 5px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+    }
+ 
+    .add-task-form button {
+        width: 45px;
+        padding: 5px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+    }
 
-        .add-task-form button {
-            width: 45px;
-            padding: 5px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-        }
 
-            .add-task-form button:hover {
-                background-color: #0056b3;
-            }
+    .add-task-form button:hover {
+        background-color: #0056b3;
+    }
+        
+    #addTaskModal,
+    #editTaskModal {
+        display: none; /* 預設隱藏 */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000; /* 確保它覆蓋其他元素 */
+    }
+
 </style>
 
 <h1>Kanban Board</h1>
@@ -133,7 +149,7 @@
         <form id="addTaskForm">
             <label for="taskTitle">標題：</label>
             <input type="text" id="taskTitle" name="taskTitle" required style="width: 100%; margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;" />
-
+            <input type="text" id="taskDesc" name="taskDesc" required style="width: 100%; margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;" />
             <label for="listId">選擇欄位：</label>
             <select id="listId" name="listId" required style="width: 100%; margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
                 @foreach (var list in Model.ItemLists)
@@ -144,6 +160,20 @@
 
             <button type="button" onclick="submitTask()" style="background-color: #007bff; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">新增</button>
             <button type="button" onclick="closeModal()" style="background-color: #ddd; color: #555; padding: 10px; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">取消</button>
+        </form>
+    </div>
+</div>
+<!-- 編輯便利貼 Modal -->
+<div id="editTaskModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
+    <div style="background: white; padding: 20px; border-radius: 10px; width: 400px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);">
+        <h2>編輯便利貼</h2>
+        <form id="editTaskForm">
+            <label for="editTaskTitle">標題：</label>
+            <input type="text" id="editTaskTitle" name="editTaskTitle" required style="width: 100%; margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;" />
+            <label for="editTaskDesc">描述：</label>
+            <input type="text" id="editTaskDesc" name="editTaskDesc" required style="width: 100%; margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;" />
+            <button type="button" onclick="submitEditTask()" style="background-color: #007bff; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">儲存</button>
+            <button type="button" onclick="closeEditModal()" style="background-color: #ddd; color: #555; padding: 10px; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">取消</button>
         </form>
     </div>
 </div>
@@ -211,19 +241,24 @@
     // 提交便利貼新增
     function submitTask() {
         const titleInput = document.getElementById('taskTitle');
+        const descInput = document.getElementById('taskDesc');
         const listSelect = document.getElementById('listId');
         const title = titleInput.value.trim();
+        const desc = descInput.value.trim();
         const listId = listSelect.value;
 
         if (title === '') {
             alert('請填寫標題！');
             return;
         }
-
+        if (desc === '') {
+            alert('請填寫描述！');
+            return;
+        }
         fetch('/Boards/AddIssue', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ listId: listId, title: title })
+            body: JSON.stringify({ listId: listId, title: title, description: desc })
         })
             .then(response => response.json())
             .then(data => {
@@ -247,22 +282,57 @@
             });
     }
 
-    // 編輯便利貼
+    let currentTaskId = null;
+
+    // 開啟編輯 Modal
     function editTask(taskId) {
-        const newTitle = prompt('請輸入新便利貼名稱：');
-        if (newTitle) {
-            fetch('/Boards/EditIssue', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ taskId, title: newTitle })
-            }).then(response => {
-                if (response.ok) {
-                    document.querySelector(`.task-card[data-task-id='${taskId}'] strong`).textContent = newTitle;
-                } else {
-                    alert('編輯失敗，請稍後再試');
-                }
-            });
+        currentTaskId = taskId;
+
+        // 預填標題和描述
+        const taskCard = document.querySelector(`.task-card[data-task-id='${taskId}']`);
+        const currentTitle = taskCard.querySelector('strong').textContent;
+        const currentDesc = taskCard.querySelector('p').textContent;
+
+        document.getElementById('editTaskTitle').value = currentTitle;
+        document.getElementById('editTaskDesc').value = currentDesc;
+
+        document.getElementById('editTaskModal').style.display = 'flex';
+    }
+
+    // 關閉編輯 Modal
+    function closeEditModal() {
+        document.getElementById('editTaskModal').style.display = 'none';
+        document.getElementById('editTaskForm').reset();
+        currentTaskId = null;
+    }
+
+    // 提交編輯便利貼
+    function submitEditTask() {
+        const titleInput = document.getElementById('editTaskTitle');
+        const descInput = document.getElementById('editTaskDesc');
+        const newTitle = titleInput.value.trim();
+        const newDesc = descInput.value.trim();
+
+        if (newTitle === '' || newDesc === '') {
+            alert('請填寫所有欄位！');
+            return;
         }
+
+        fetch('/Boards/EditIssue', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ taskId: currentTaskId, title: newTitle, description: newDesc })
+        }).then(response => {
+            if (response.ok) {
+                const taskCard = document.querySelector(`.task-card[data-task-id='${currentTaskId}']`);
+                taskCard.querySelector('strong').textContent = newTitle;
+                taskCard.querySelector('p').textContent = newDesc;
+
+                closeEditModal();
+            } else {
+                alert('編輯失敗，請稍後再試');
+            }
+        });
     }
 
     // 刪除便利貼
