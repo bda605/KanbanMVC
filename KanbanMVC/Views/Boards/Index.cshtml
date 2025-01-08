@@ -149,7 +149,15 @@
         <form id="addTaskForm">
             <label for="taskTitle">標題：</label>
             <input type="text" id="taskTitle" name="taskTitle" required style="width: 100%; margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;" />
+            <label for="taskTitle">描述：</label>
             <input type="text" id="taskDesc" name="taskDesc" required style="width: 100%; margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;" />
+
+            <label for="startDate">開始日期：</label>
+            <input type="date" id="startDate" name="startDate" required style="width: 100%; margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;" />
+
+            <label for="endDate">結束日期：</label>
+            <input type="date" id="endDate" name="endDate" required style="width: 100%; margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;" />
+
             <label for="listId">選擇欄位：</label>
             <select id="listId" name="listId" required style="width: 100%; margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
                 @foreach (var list in Model.ItemLists)
@@ -172,6 +180,10 @@
             <input type="text" id="editTaskTitle" name="editTaskTitle" required style="width: 100%; margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;" />
             <label for="editTaskDesc">描述：</label>
             <input type="text" id="editTaskDesc" name="editTaskDesc" required style="width: 100%; margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;" />
+            <label for="editStartDate">開始日期：</label>
+            <input type="date" id="editStartDate" name="editStartDate" required style="width: 100%; margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;" />
+            <label for="editEndDate">結束日期：</label>
+            <input type="date" id="editEndDate" name="editEndDate" required style="width: 100%; margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;" />
             <button type="button" onclick="submitEditTask()" style="background-color: #007bff; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">儲存</button>
             <button type="button" onclick="closeEditModal()" style="background-color: #ddd; color: #555; padding: 10px; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">取消</button>
         </form>
@@ -193,6 +205,7 @@
                         </div>
                         <strong>@task.Title</strong>
                         <p>@task.Description</p>
+                        <small>開始：@task.StartDate.ToString("yyyy/MM/dd") | 結束：@task.EndDate.ToString("yyyy/MM/dd")}</small>
                     </div>
                 }
             </div>
@@ -243,23 +256,27 @@
         const titleInput = document.getElementById('taskTitle');
         const descInput = document.getElementById('taskDesc');
         const listSelect = document.getElementById('listId');
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
         const title = titleInput.value.trim();
         const desc = descInput.value.trim();
         const listId = listSelect.value;
-
-        if (title === '') {
-            alert('請填寫標題！');
-            return;
-        }
-        if (desc === '') {
-            alert('請填寫描述！');
+        const startDate = startDateInput.value;
+        const endDate = endDateInput.value;
+        if (title === '' || desc === '' || startDate === '' || endDate === '') {
+            alert('請填寫所有欄位！');
             return;
         }
         fetch('/Boards/AddIssue', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ listId: listId, title: title, description: desc })
-        })
+            body: JSON.stringify({ listId: listId,
+                                   title: title, 
+                                   description: desc,
+                                   startDate: startDate,
+                                   endDate: endDate
+            })
+           })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -272,7 +289,9 @@
                             <button onclick="editTask(${data.taskId})">✏️</button>
                             <button onclick="deleteTask(${data.taskId})">🗑️</button>
                         </div>
-                        <strong>${data.title}</strong><p></p>`;
+                        <strong>${data.title}</strong>
+                        <p>${data.description}</p>
+                        <small>開始：${startDate} | 結束：${endDate}</small>`;
                     taskList.appendChild(newTask);
 
                     closeModal();
@@ -292,10 +311,20 @@
         const taskCard = document.querySelector(`.task-card[data-task-id='${taskId}']`);
         const currentTitle = taskCard.querySelector('strong').textContent;
         const currentDesc = taskCard.querySelector('p').textContent;
+        // 使用正則從日期文字中解析開始日期和結束日期
+        const dateText = taskCard.querySelector('small').textContent;
+        const dateMatch = dateText.match(/開始：(\d{4}\/\d{2}\/\d{2}) \| 結束：(\d{4}\/\d{2}\/\d{2})/);
+        const currentStartDate = dateMatch ? dateMatch[1].replace(/\//g, '-') : '';
+        const currentEndDate = dateMatch ? dateMatch[2].replace(/\//g, '-') : '';
+
+        // 預填編輯表單的欄位
+ 
+     
 
         document.getElementById('editTaskTitle').value = currentTitle;
         document.getElementById('editTaskDesc').value = currentDesc;
-
+        document.getElementById('editStartDate').value = currentStartDate;
+        document.getElementById('editEndDate').value = currentEndDate;
         document.getElementById('editTaskModal').style.display = 'flex';
     }
 
@@ -310,10 +339,13 @@
     function submitEditTask() {
         const titleInput = document.getElementById('editTaskTitle');
         const descInput = document.getElementById('editTaskDesc');
+        const startDateInput = document.getElementById('editStartDate');
+        const endDateInput = document.getElementById('editEndDate');
         const newTitle = titleInput.value.trim();
         const newDesc = descInput.value.trim();
-
-        if (newTitle === '' || newDesc === '') {
+        const newStartDate = startDateInput.value;
+        const newEndDate = endDateInput.value;
+        if (newTitle === '' || newDesc === '' || newStartDate === '' || newEndDate === '') {
             alert('請填寫所有欄位！');
             return;
         }
@@ -321,12 +353,18 @@
         fetch('/Boards/EditIssue', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ taskId: currentTaskId, title: newTitle, description: newDesc })
+            body: JSON.stringify({ taskId: currentTaskId, 
+                                  title: newTitle, 
+                                  description: newDesc,
+                                  startDate: newStartDate,
+                                  endDate: newEndDate
+            })
         }).then(response => {
             if (response.ok) {
                 const taskCard = document.querySelector(`.task-card[data-task-id='${currentTaskId}']`);
                 taskCard.querySelector('strong').textContent = newTitle;
                 taskCard.querySelector('p').textContent = newDesc;
+                taskCard.querySelector('small').textContent = `開始：${newStartDate} | 結束：${newEndDate}`;
 
                 closeEditModal();
             } else {

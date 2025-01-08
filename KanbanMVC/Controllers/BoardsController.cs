@@ -128,7 +128,9 @@ namespace KanbanMVC.Controllers
                 var newIssue = new Issue
                 {
                     Title = model.Title,
-                    Description =model.Title, // 可以選擇是否提供描述
+                    Description =model.Description, // 可以選擇是否提供描述
+                    StartDate = model.StartDate,
+                    EndDate = model.EndDate,
                     ListId = model.ListId,
                     ItemLists = list
                 };
@@ -168,6 +170,9 @@ namespace KanbanMVC.Controllers
             }
 
             issue.Title = model.Title;
+            issue.Description = model.Description;
+            issue.StartDate = model.StartDate;
+            issue.EndDate = model.EndDate;
             await _context.SaveChangesAsync();
             return Ok();
         }
@@ -176,6 +181,9 @@ namespace KanbanMVC.Controllers
         {
             public int TaskId { get; set; }
             public string Title { get; set; }
+            public string Description { get; set; }
+            public DateTime StartDate { get; set; } // 開始日期
+            public DateTime EndDate { get; set; }   // 結束日期
         }
         public class AddIssueViewModel
         {
@@ -183,6 +191,8 @@ namespace KanbanMVC.Controllers
             public string Title { get; set; }
 
             public string Description { get; set; }
+            public DateTime StartDate { get; set; } // 開始日期
+            public DateTime EndDate { get; set; }   // 結束日期
         }
         public class IssueMoveDto
         {
