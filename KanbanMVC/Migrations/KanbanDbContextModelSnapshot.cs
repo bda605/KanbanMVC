@@ -57,9 +57,6 @@ namespace KanbanMVC.Migrations
                     b.Property<int>("ItemListsId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ListId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 

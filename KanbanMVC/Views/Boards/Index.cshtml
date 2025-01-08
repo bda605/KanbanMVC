@@ -221,7 +221,7 @@
             group: 'tasks',
             animation: 150,
             onEnd: function (evt) {
-                const taskId = evt.item.dataset.taskId;
+                const issueId = evt.item.dataset.taskId;
                 const sourceListId = evt.from.dataset.listId;
                 const targetListId = evt.to.dataset.listId;
 
@@ -229,7 +229,7 @@
                     fetch('/Boards/Move', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ taskId, newListId: targetListId })
+                        body: JSON.stringify({ issueId, newListId: targetListId })
                     }).then(response => {
                         if (!response.ok) {
                             alert('移動失敗，請稍後再試');
@@ -353,7 +353,7 @@
         fetch('/Boards/EditIssue', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ taskId: currentTaskId, 
+            body: JSON.stringify({ issueId: currentTaskId, 
                                   title: newTitle, 
                                   description: newDesc,
                                   startDate: newStartDate,

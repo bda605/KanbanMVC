@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KanbanMVC.Migrations
 {
     [DbContext(typeof(KanbanDbContext))]
-    [Migration("20250108073258_init")]
+    [Migration("20250108101913_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -58,9 +58,6 @@ namespace KanbanMVC.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int>("ItemListsId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ListId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")

@@ -54,7 +54,6 @@ namespace KanbanMVC.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ListId = table.Column<int>(type: "int", nullable: false),
                     ItemListsId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>

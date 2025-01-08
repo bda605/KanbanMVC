@@ -1,5 +1,6 @@
 ﻿using KanbanMVC.Data;
 using KanbanMVC.Models;
+using KanbanMVC.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -109,12 +110,14 @@ namespace KanbanMVC.Controllers
             return _context.Boards.Any(e => e.Id == id);
         }
         [HttpPost]
-        public async Task<IActionResult> Move([FromBody] IssueMoveDto moveDto)
+        public async Task<IActionResult> Move([FromBody] IssueMoveViewModel moveDto)
         {
-            var task = await _context.Issue.FindAsync(moveDto.TaskId);
-            if (task == null) return NotFound();
 
-            task.ListId = moveDto.NewListId;
+            var issue = await _context.Issue.FindAsync(moveDto.IssueId);
+            var list = await _context.ItemList.FindAsync(moveDto.NewListId);
+            if (issue == null) return NotFound();
+
+            issue.ItemLists = list;
             await _context.SaveChangesAsync();
 
             return Ok();
@@ -131,7 +134,6 @@ namespace KanbanMVC.Controllers
                     Description =model.Description, // 可以選擇是否提供描述
                     StartDate = model.StartDate,
                     EndDate = model.EndDate,
-                    ListId = model.ListId,
                     ItemLists = list
                 };
 
@@ -156,14 +158,11 @@ namespace KanbanMVC.Controllers
             return Ok();
         }
 
-        public class DeleteIssueViewModel
-        {
-            public int TaskId { get; set; }
-        }
+        
         [HttpPost]
         public async Task<IActionResult> EditIssue([FromBody] IssueViewModel model)
         {
-            var issue = await _context.Issue.FindAsync(model.TaskId);
+            var issue = await _context.Issue.FindAsync(model.IssueId);
             if (issue == null)
             {
                 return NotFound();
@@ -176,28 +175,6 @@ namespace KanbanMVC.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
-
-        public class IssueViewModel
-        {
-            public int TaskId { get; set; }
-            public string Title { get; set; }
-            public string Description { get; set; }
-            public DateTime StartDate { get; set; } // 開始日期
-            public DateTime EndDate { get; set; }   // 結束日期
-        }
-        public class AddIssueViewModel
-        {
-            public int ListId { get; set; }
-            public string Title { get; set; }
-
-            public string Description { get; set; }
-            public DateTime StartDate { get; set; } // 開始日期
-            public DateTime EndDate { get; set; }   // 結束日期
-        }
-        public class IssueMoveDto
-        {
-            public int TaskId { get; set; }
-            public int NewListId { get; set; }
-        }
+ 
     }
 }
