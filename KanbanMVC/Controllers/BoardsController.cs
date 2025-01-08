@@ -138,7 +138,7 @@ namespace KanbanMVC.Controllers
                 _context.Issue.Add(newIssue);
                 await _context.SaveChangesAsync();
 
-                return Json(new { success = true, taskId = newIssue.Id, title = newIssue.Title });
+                return Json(new { success = true, taskId = newIssue.Id, title = newIssue.Title , description  = newIssue.Description});
             }
             return Json(new { success = false });
         }
